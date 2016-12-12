@@ -2,6 +2,53 @@
 
 const fs = require('fs');
 
+/**
+ * All regex matches against str.
+ *
+ * regexAllMatches(/regex/, str)
+ * > [
+ *   ['match', 'group' index: 20, input: 'inputstr'],
+ *   ['match', 'group' index: 34, input: 'inputstr']
+ * ]
+ */
+function regexAllMatches(re, str){
+    const matches = [];
+    let match;
+    while((match = re.exec(str)) !== null){
+        matches.push(match);
+    }
+    return matches;
+}
+
+function abaInverse(aba){
+    const outside = aba.charAt(0);
+    const inside = aba.charAt(1);
+    return `${inside}${outside}${inside}`;
+}
+
+function sequenceAbas(seq){
+    // have to capture w/ lookahead or regex won't match overlaps.
+    // i.e. we want 'abab' to match both 'aba' and 'bab'
+    const re = /([a-z1-9])(?=([a-z1-9]\1))/g
+    return regexAllMatches(re, seq)
+        .map(m => m[0] + m[2])
+        .filter(aba => {
+            return aba.charAt(0) !== aba.charAt(1);
+        });
+}
+
+//console.log(abaInverse('hjh'));
+//console.log(abaInverse('isi'));
+
+//let ip = 'iungssgfnnjlgdferc[xfffplonmzjmxkinhl]dehxdielvncdawomqk[teizynepguvtgofr]fjazkxesmlwryphifh[ppjfvfefqhmuqtdp]luopramrehtriilwlou';
+//console.log(regexAllMatches(/([a-z1-9])[a-z1-9]\1/g, 'lkjssslkjfsf'));
+//let seq = 'lkjssslababkjfsfs';
+//console.log(regexAllMatches(/([a-z1-9])(?=([a-z1-9]\1))/g, seq));
+//console.log(sequenceAbas(seq));
+
+//return;
+
+
 class Ip {
     constructor(addr){
         this.addr = addr;
@@ -14,6 +61,25 @@ class Ip {
         return this.regularSequences.some(seq => this.sequenceHasAbba(seq))
         && this.hypernetSequences.every(seq => !this.sequenceHasAbba(seq));
     }
+
+    supportsSsl() {
+        return this.regularSequences.some(regSeq => {
+            const abas = sequenceAbas(regSeq);
+
+            return abas.some(aba => {
+                return this.hypernetSequences.some(hnSeq => {
+                    return hnSeq.includes(abaInverse(aba));
+                });
+            })
+        });
+    }
+
+    /*
+    sequenceHasAba(seq) {
+        const re = /([a-z1-9])[a-z1-9]\1/g;
+        const abas = regexAllMatches(re, seq);
+    }
+    */
 
     sequenceHasAbba(seq) {
         const re = /([a-z1-9])\1/g
@@ -54,23 +120,21 @@ class Ip {
     }
 }
 
-//const ip = new Ip('dkodbaotlfdaphwzbcc[ldzeemqiovyqjgs]qxibabdusgaistkru[usglloxgycyynmp]aaocvclsocababbzxeg[liaacgfxytuqudp]jvvqsypuoduyhvraak');
-//console.log('addr', ip.addr);
-//console.log('hns:', ip.hypernetSequences);
-
 if(require.main === module) {
     const ips = fs.readFileSync('./ips.txt', 'utf8')
         .split('\n')
         //.slice(0, 4)
         .map(line => new Ip(line))
+
+    console.log('ips total', ips.length);
+
+    const supportTls = ips
         .filter(ip => ip.supportsTls());
 
-    console.log('ips', ips.length);
+    console.log('num tls support', supportTls.length);
 
-    //ips.forEach(ip => {
-        //console.log(ip);
-        //console.log('tls', ip.supportsTls());
-        //console.log('reg', ip.regularSequences);
-        //console.log('hypernet', ip.hypernetSequences);
-    //});
+    const supportSsl = ips
+        .filter(ip => ip.supportsSsl());
+
+    console.log('num ssl support', supportSsl.length);
 }
