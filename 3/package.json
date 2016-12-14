@@ -1,0 +1,22 @@
+{
+  "name": "3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "3.js",
+  "engines": {
+    "node": ">=7"
+  },
+  "dependencies": {
+    "chai": "^3.5.0",
+    "lodash": "^4.17.2"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
