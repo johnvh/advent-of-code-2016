@@ -2,7 +2,6 @@
 
 const crypto = require('crypto');
 const K = require('kefir');
-const doorId = 'cxdnnyjw';
 
 const md5 = input => crypto.createHash('md5')
     .update(input)
@@ -27,30 +26,12 @@ const hashes = (doorId, start = 0) => K.repeat(i => {
 
 const isPwHash = hash => hash.startsWith('0'.repeat(5));
 
-const pwChar = hash => hash.charAt(5);
-
 // 2307654 is first pw hash for input cxdnnyjw
 
-const firstDoorPw = () => hashes(doorId, 2307654)
+const pwHashes = pw => hashes(pw, 2307654)
     .filter(v => isPwHash(v.hash))
-    .spy('pw hash')
-    .take(8)
-    .map(v => v.hash)
-    .map(pwChar)
-    .spy('char')
-    .scan((prev, next) => `${prev}${next}`, '');
+    .spy('pw hash');
 
-if(require.main === module){
-    firstDoorPw()
-        .observe({
-            value(value) {
-                console.log('final:', value);
-            },
-            error(error) {
-                console.log('error:', error);
-            },
-            end() {
-                console.log('end');
-            }
-        });
-}
+Object.assign(exports, {
+    pwHashes
+});
