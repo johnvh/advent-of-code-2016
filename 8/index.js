@@ -16,9 +16,6 @@ function arrayRotate(amount, arr){
 
 // rect 9x1
 // rotate column x=43 by 1
-// rotate column x=40 by 2
-// rotate column x=38 by 1
-// rotate column x=15 by 1
 // rotate row y=3 by 35
 function parseInstruction(ins){
     ins = ins.trim();
@@ -51,38 +48,50 @@ function parseInstruction(ins){
 }
 
 function buildScreen(width, height){
-    return Array(height).fill(0)
-        .map(() => Array(width).fill(''));
+    return Array(height).fill()
+        .map(() => Array(width).fill(' '));
 }
 
-const rotateScreen = R.compose(R.reverse, R.transpose);
+const rotateScreen = R.transpose;
 
-//const copyScreen = screen => screen.map(r => row.slice());
-
-function applyRect(rectIns, screen){
+function applyRect({width, height}, screen){
     const s = R.clone(screen);
 
     R.times(y => {
         let row = s[y];
-        R.times(x => {
-            row[x] = '#';
-        }, rectIns.width);
-    }, rectIns.height);
+        R.times(x => row[x] = '#', width);
+    }, height);
 
     return s;
 }
 
-function applyRotateRow(rotateRowIns, screen){
+function applyRotateRow({row, amount}, screen){
     const s = R.clone(screen);
-    const row = s[rotateRowIns.row];
+    const r = s[row];
 
-    s[rotateRowIns.row] = arrayRotate(rotateRowIns.amount * -1, row);
-
+    s[row] = arrayRotate(amount * -1, r);
     return s;
 }
 
-// [ a0 a1 ] => [ a1 b1 ]
-// [ b0 b1 ]    [ a0 b0 ]
+function applyRotateCol({col, amount}, screen){
+    const s = rotateScreen(R.clone(screen));
+
+    s[col] = arrayRotate(amount * -1, s[col]);
+    return rotateScreen(s);
+}
+
+const applyIns = R.cond([
+    [({type}) => R.equals('rect', type), applyRect],
+    [({type}) => R.equals('rotateRow', type), applyRotateRow],
+    [({type}) => R.equals('rotateCol', type), applyRotateCol],
+    [R.T, ins => {throw new Error(`dont know instruction ${ins.type}`);}]
+]);
+
+const screenToStr = R.compose(R.join('\n'), R.map(R.join('')));
+
+const screenCount = screen => [].concat.apply([], screen)
+    .filter(R.equals('#'))
+    .length;
 
 Object.assign(exports, {
     arrayRotate,
@@ -90,13 +99,19 @@ Object.assign(exports, {
     parseInstruction,
     buildScreen,
     applyRect,
-    applyRotateRow
+    applyRotateRow,
+    applyRotateCol
 });
 
 if(require.main === module){
     const instructions = input.map(parseInstruction);
     const screen = buildScreen(50, 6);
 
-    console.log(screen[0].length);
-    console.log(screen.length);
+    const finalScreen = instructions.reduce((screen, ins) => {
+        console.log('apply', ins);
+        return applyIns(ins, screen);
+    }, screen);
+
+    console.log(screenToStr(finalScreen));
+    console.log('pixels lit:', screenCount(finalScreen));
 }

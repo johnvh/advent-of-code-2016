@@ -7,7 +7,8 @@ const {
     parseInstruction,
     buildScreen,
     applyRect,
-    applyRotateRow
+    applyRotateRow,
+    applyRotateCol
 } = require('./');
 
 describe('parser', () => {
@@ -62,25 +63,26 @@ describe('rotateScreen', () => {
         ];
 
         expect(rotateScreen(screen)).toEqual([
-            ['a2', 'b2', 'c2'],
+            ['a0', 'b0', 'c0'],
             ['a1', 'b1', 'c1'],
-            ['a0', 'b0', 'c0']
+            ['a2', 'b2', 'c2'],
         ]);
     });
 });
 
 describe('applyRect', () => {
     it('draws rect', () => {
+        const S = ' ';
         const s = buildScreen(4, 4);
         const ins = {
             width: 2,
             height: 2
         };
         expect(applyRect(ins, s)).toEqual([
-            ['#', '#', '', ''],
-            ['#', '#', '', ''],
-            ['', '', '', ''],
-            ['', '', '', ''],
+            ['#', '#', S, S],
+            ['#', '#', S, S],
+            [S, S, S, S],
+            [S, S, S, S],
         ]);
     });
 });
@@ -120,6 +122,25 @@ describe('applyRotateRow', () => {
 
 describe('applyRotateCol', () => {
     it('rotates columns', () => {
-        throw new Error('Implment me!!!');
+        const s = [
+            ['#', '#', '', ''],
+            ['#', '#', '', ''],
+            ['',  '',  '', ''],
+            ['',  '',  '', ''],
+        ];
+
+        expect(applyRotateCol({col: 1, amount: 1}, s)).toEqual([
+            ['#', '', '', ''],
+            ['#', '#', '', ''],
+            ['',  '#', '', ''],
+            ['',  '', '', ''],
+        ]);
+
+        expect(applyRotateCol({col: 0, amount: 3}, s)).toEqual([
+            ['#', '#', '', ''],
+            ['',  '#', '', ''],
+            ['',  '', '', ''],
+            ['#', '', '', ''],
+        ]);
     });
 });
