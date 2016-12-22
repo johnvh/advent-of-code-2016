@@ -1,0 +1,22 @@
+{
+  "name": "9",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">=7"
+  },
+  "scripts": {
+    "go": "node index.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^18.0.0"
+  },
+  "dependencies": {
+    "ramda": "^0.22.1"
+  }
+}
