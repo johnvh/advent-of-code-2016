@@ -72,7 +72,7 @@ const check = (chipNums, bots) => {
     return !botWithChipNums;
 };
 
-const runProgram = instructions => {
+const runProgram1 = instructions => {
     const {
         bot: botInstructions,
         value: moves
@@ -111,8 +111,61 @@ const runProgram = instructions => {
     logRun('done', i);
 };
 
-if(require.main === module){
-    //console.log('input', input.length);
+const runProgram2 = instructions => {
+    const {
+        bot: botInstructions,
+        value: moves
+    } = groupInstructions(instructions);
+    const bots = makeBots(botInstructions);
+    const bins = new Map();
+    const fullBots = bots => Array.from(bots.values()).filter(bot => bot.chips.length >= 2);
+    let full;
+    let i = 0;
 
-    runProgram(input);
+    populate(moves, bots);
+    full = fullBots(bots);
+
+    while(full.length > 0){
+        logRun('@@ run', i++);
+        logMove('full:', fullBots.length);
+
+        full.forEach(bot => {
+            const [botLow, botHigh] = bot.chips.sort((a, b) => a - b);
+
+            logMove(`bot ${bot.botNum} is full`, bot);
+
+            bot.chips = [];
+
+            if(bot.low.to == 'bot'){
+                giveChip(bots.get(bot.low.num), botLow);
+            }else if(bot.low.to == 'output'){
+                const bin = bins.get(bot.low.num) || [];
+                bin.push(botLow);
+                bins.set(bot.low.num, bin);
+            }
+
+            if(bot.high.to == 'bot'){
+                giveChip(bots.get(bot.high.num), botHigh);
+            }else if(bot.high.to == 'output'){
+                const bin = bins.get(bot.high.num) || [];
+                bin.push(botHigh);
+                bins.set(bot.high.num, bin);
+            }
+        });
+
+        full = fullBots(bots);
+    }
+
+    logRun('done', i);
+
+    const product = [0, 1, 2]
+        .map(binNum => R.head(bins.get(binNum)))
+        .reduce((result, chip) => result * chip, 1);
+
+    console.log('product of chips from 0, 1, 2:', product);
+};
+
+if(require.main === module){
+    runProgram1(input);
+    runProgram2(input);
 }
