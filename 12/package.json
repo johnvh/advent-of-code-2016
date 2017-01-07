@@ -1,0 +1,23 @@
+{
+  "name": "12",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">=7"
+  },
+  "scripts": {
+    "go": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "immutable": "^3.8.1",
+    "ramda": "^0.23.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
+  }
+}
