@@ -6,7 +6,7 @@ chai.use(require('chai-immutable'));
 
 const expect = chai.expect;
 const {fromJS, List} = require('immutable');
-const {parseIns, assembunny, initState, execIns, runIns} = require('./');
+const {parseIns, assembunny, initState, execIns, run} = require('./assembunny');
 
 //[0, 0, 0, 0];
 
@@ -91,7 +91,7 @@ describe('assembunnyState', () => {
     it('executes single state', () => {
         const state = assembunny(initState([
             ['inc', 'a']
-        ]));
+        ], Array(4).fill(0)));
         let s = state.next();
 
         //console.log('@@', s);
@@ -102,16 +102,16 @@ describe('assembunnyState', () => {
 
 });
 
-describe('runIns', () => {
+describe('run', () => {
     it('executes program', () => {
-        const r = runIns([
+        const r = run([
             ['cpy', 41, 'a'],
             ['inc', 'a'],
             ['inc', 'a'],
             ['dec', 'a'],
             ['jnz', 'a', 2],
             ['dec', 'a']
-        ]);
+        ], Array(4).fill(0));
 
         console.log('run...', r);
         expect(r.getIn(['registers', '0'], 42));
