@@ -7,7 +7,8 @@
     "node": ">=7"
   },
   "scripts": {
-    "go": "node index.js"
+    "1": "node index.js --file input.txt --registers 0,0,0,0",
+    "2": "node index2.js --file input.txt -c 1"
   },
   "keywords": [],
   "author": "",
