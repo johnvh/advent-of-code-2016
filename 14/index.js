@@ -1,27 +1,57 @@
 'use strict';
+/* eslint-env node */
 
+const lru = require('lru-cache');
 const crypto = require('crypto');
 const R = require('ramda');
 const {Seq} = require('immutable');
 const salt = 'cuanljph';
 const MAX = Number.MAX_SAFE_INTEGER;
 
+const stretch = () => {
+    const optIndex = process.argv.indexOf('--stretch');
+    const stretch = parseInt(process.argv[optIndex + 1]);
+    return isNaN(stretch) ? 0 : stretch;
+};
+
+const memoize = f => {
+    const cache = lru({max: 10000});
+    return function(){
+        const k = arguments[0];
+        if(cache.has(k)){
+            return cache.get(k);
+        }
+        const v = f.apply(null, arguments);
+        cache.set(k, v);
+        return v;
+    };
+};
+
 const md5 = input => crypto.createHash('md5')
     .update(input)
     .digest('hex');
 
-const keyGenerator = R.curry((salt, start, stop) => {
-    //console.log('keyGenerator', salt, start, stop);
+const hash = R.curry((salt, stretch, i) => {
+    let h = md5(`${salt}${i}`);
+    R.times(() => h = md5(h), stretch);
+    return h;
+});
+
+const saltHash = hash(salt);
+//const keyUnstretched = saltHash(0);
+const keyStretched = memoize(saltHash(stretch()));
+
+const keyGenerator = R.curry((hashImpl, start, stop) => {
     return function*(){
         let i = start;
-        //console.log('gen', {start, stop});
         while(i < stop) {
-            yield {i, md5: md5(`${salt}${i++}`)};
+            yield {i, md5: hashImpl(i++)};
         }
     };
 });
 
-const saltGenerator = keyGenerator(salt);
+//const keyGenUnstretched = keyGenerator(keyUnstretched);
+const keyGenStretched = keyGenerator(keyStretched);
 
 const recordFirstTriple = keyRecord => {
     const [triple, tripleChar] = keyRecord.md5.match(/(.)\1\1/) || [];
@@ -31,14 +61,17 @@ const recordFirstTriple = keyRecord => {
 const recordHasTriple = R.propIs(String, 'triple');
 
 const hashQuintupleDownStream = ({i, tripleChar}) => {
-    return !Seq(saltGenerator(i + 1, i + 1001)())
+    return !Seq(keyGenStretched(i + 1, i + 1001)())
         //.map(R.tap(v => console.log('     quintuple?',  v.i)))
         .filter(record => record.md5.includes(tripleChar.repeat(5)))
+        .take(1)
         //.map(R.tap(v => console.log('  quintuple!! at',  v.i)))
         .isEmpty();
 };
 
-Seq(saltGenerator(0, MAX)())
+console.log('stretch', stretch());
+
+Seq(keyGenStretched(0, MAX)())
     .map(recordFirstTriple)
     //.map(R.tap(v => console.log('record:', v)))
     .filter(recordHasTriple)

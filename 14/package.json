@@ -7,13 +7,15 @@
     "node": ">=7"
   },
   "scripts": {
-    "1": "node index.js"
+    "1": "node index.js --stretch 0",
+    "2": "node index.js --stretch 2016"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "immutable": "^3.8.1",
+    "lru-cache": "^4.0.2",
     "ramda": "^0.23.0"
   },
   "devDependencies": {}
