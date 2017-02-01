@@ -6,7 +6,9 @@
   "engines": {
     "node": ">=7"
   },
-  "scripts": {},
+  "scripts": {
+    "both": "node index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

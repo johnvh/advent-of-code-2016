@@ -1,3 +1,5 @@
+/* eslint-disable no-constant-condition */
+
 const assert = require('assert'); // eslint-disable-line no-unused-vars
 const R = require('ramda');
 const input = require('fs').readFileSync('./input.txt', 'utf8')
@@ -24,7 +26,6 @@ const lowestNotInRanges = ranges => {
         if (n < 0) {
             continue;
         }
-
         if (!inRanges(ranges, n)) {
             return n;
         }
@@ -33,4 +34,42 @@ const lowestNotInRanges = ranges => {
     return -1;
 };
 
+const minStart = R.pipe(R.map(R.head), R.reduce(R.min, Number.MAX_SAFE_INTEGER));
+//assert.equal(minStart([[1, 5], [3, 6], [3, 4] ]), 1);
+
+const maxEnd = R.pipe(R.map(R.last), R.reduce(R.max, 0));
+//assert.equal(maxEnd([[1, 5], [0, 2], [3, 6], [3, 4] ]), 6);
+
+const collapseRanges = ranges => {
+    let r = sortRanges(ranges);
+
+    while (true) {
+        const grouped = R.groupWith((r1, r2) => r2[0] <= r1[1], r);
+        const collapsed = R.map(ranges => [minStart(ranges), maxEnd(ranges)], grouped);
+
+        if (collapsed.length === r.length) {
+            return collapsed;
+        }
+        r = collapsed;
+    }
+};
+
+const numAvailableIps = (ranges, max) => {
+    const collapsed = collapseRanges(ranges);
+    const cover = R.map(range => R.last(range) - R.head(range) + 1, collapsed);
+
+    return R.reduce((acc, c) => acc - c, max + 1, cover);
+};
+/*
+assert.equal(numAvailableIps([
+    [1, 2], [0, 4],
+    // 5, 6, 7
+    [8, 9], [9, 12],
+    // 13
+    [14, 17]
+    // 18, 19
+], 19), 6);
+*/
+
 console.log('lowest available ip:', lowestNotInRanges(input));
+console.log('num available:', numAvailableIps(input, 4294967295));
